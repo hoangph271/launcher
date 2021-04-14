@@ -5,16 +5,16 @@ extern crate rocket;
 
 use std::path::{PathBuf};
 use std::convert::Infallible;
-use rocket::{Outcome};
+use rocket::{Outcome, Response};
 use rocket::request;
 use rocket::request::{Request, FromRequest};
 use rocket_contrib::serve::{StaticFiles};
-use rocket::response::{self, Response, Responder, Redirect, Stream, NamedFile};
-use rocket::http::{ContentType, Status};
-use std::io;
+use rocket::http::{Status, ContentType};
+use rocket::response::{self, Responder, Stream, NamedFile};
 use std::io::prelude::*;
 use std::fs::File;
-use std::io::SeekFrom;
+use std::io::{SeekFrom, Cursor};
+use std::env::current_dir;
 
 struct StreamResponser {
     range: Range,
@@ -22,8 +22,20 @@ struct StreamResponser {
 }
 impl<'a> Responder<'a> for StreamResponser {
     fn respond_to(self, req: &Request) -> response::Result<'a> {
-        let path = self.path.to_string_lossy().clone();
-        let mut file = File::open(format!("/root/useCode/launcher/bin/{}", path)).unwrap(); // FIXME:
+        let cwd_path = current_dir().unwrap();
+        let path = cwd_path.join("bin").join(self.path);
+        let file = File::open(path.clone());
+
+        if let Err(_) = file {
+            let message = format!("{:?}", path);
+            return Response::build()
+                .status(Status::NotFound)
+                .header(ContentType::Plain)
+                .sized_body(Cursor::new(message))
+                .ok();
+        }
+
+        let mut file = file.unwrap();
 
         if let Range::OpenEnd(start) = self.range {
             if let Ok(_) = file.seek(SeekFrom::Start(start as u64)) {
@@ -37,10 +49,9 @@ impl<'a> Responder<'a> for StreamResponser {
             }
         }
 
-        let file_path = format!("/root/useCode/launcher/bin/{}", path);
-        return NamedFile::open(format!("/root/useCode/launcher/bin/{}", path))
+        return NamedFile::open(path)
             .unwrap()
-            .respond_to(req);  // FIXME:
+            .respond_to(req); // FIXME:
     }
 }
 
@@ -100,8 +111,10 @@ fn streams(path: PathBuf, range: Range) -> StreamResponser {
 }
 
 fn main() {
+    let path = current_dir().unwrap();
+
     rocket::ignite()
-        .mount("/bin", StaticFiles::from("/root/useCode/launcher/bin"))
+        .mount("/bin", StaticFiles::from(path))
         .mount("/streams", routes![streams])
         .mount("/dirs", routes![dirs])
         .launch();
