@@ -11,7 +11,6 @@ use rocket::request::{Request, FromRequest};
 use rocket_contrib::serve::{StaticFiles};
 use rocket::response::{self, Response, Responder, Redirect, Stream, NamedFile};
 use rocket::http::{ContentType, Status};
-use std::os::unix::net::UnixStream;
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
