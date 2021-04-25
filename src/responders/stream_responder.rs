@@ -1,7 +1,10 @@
-use super::super::request_parsers::RangeFromHeader;
+use super::super::{
+    request_parsers::RangeFromHeader,
+    app_context::{bins}
+};
 use rocket::http::{ContentType, Status};
 use rocket::request::Request;
-use rocket::response::{self, NamedFile, Responder, Stream};
+use rocket::response::{self, Responder, Stream, Redirect};
 use rocket::Response;
 use std::fs::File;
 use std::io::prelude::*;
@@ -20,7 +23,8 @@ impl StreamResponder {
 
 impl<'a> Responder<'a> for StreamResponder {
     fn respond_to(self, req: &Request) -> response::Result<'a> {
-        let file = File::open(self.path.clone());
+        let file_path = bins().join(self.path.to_owned());
+        let file = File::open(file_path);
 
         if let Err(_) = file {
             let message = format!("{:?}", self.path);
@@ -45,6 +49,7 @@ impl<'a> Responder<'a> for StreamResponder {
             }
         }
 
-        return NamedFile::open(self.path).unwrap().respond_to(req); // FIXME:
+        let request_path = format!("/bins/{}", self.path.to_string_lossy().to_owned().to_string());
+        return Redirect::to(request_path).respond_to(req);
     }
 }

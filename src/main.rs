@@ -5,37 +5,38 @@ extern crate rocket;
 
 mod request_parsers;
 mod responders;
+mod app_context;
 
 use std::path::{PathBuf};
-use std::env::current_dir;
 use rocket_contrib::serve::{StaticFiles};
 use request_parsers::RangeFromHeader;
 use responders::stream_responder::{StreamResponder};
+use app_context::{bins, init_app};
 
 #[get("/<path..>")]
 fn dirs(path: PathBuf) -> String {
-    path
+    bins().join(path)
         .as_os_str()
         .to_string_lossy()
         .to_owned()
         .to_string()
 }
-
-fn cwd () -> PathBuf {
-    current_dir().unwrap()
+#[get("/")]
+fn dirs_index() -> String {
+    dirs(PathBuf::from(""))
 }
 
 #[get("/<path..>")]
 fn streams(path: PathBuf, range: RangeFromHeader) -> StreamResponder {
-    StreamResponder::new(range, cwd().join(path))
+    StreamResponder::new(range, path)
 }
 
 fn main() {
-    let path = current_dir().unwrap();
+    init_app();
 
     rocket::ignite()
-        .mount("/bin", StaticFiles::from(path))
+        .mount("/bins", StaticFiles::from(bins()))
         .mount("/streams", routes![streams])
-        .mount("/dirs", routes![dirs])
+        .mount("/dirs", routes![dirs, dirs_index])
         .launch();
 }
