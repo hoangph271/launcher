@@ -5,7 +5,7 @@ use rocket::response::{self, Redirect, Responder};
 use rocket::Response;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::{SeekFrom};
+use std::io::SeekFrom;
 use std::path::PathBuf;
 
 pub struct StreamResponder {
@@ -38,18 +38,19 @@ impl<'a> Responder<'a> for StreamResponder {
                 );
                 return Redirect::to(request_path).respond_to(req);
             }
-            RangeFromHeader::OpenEnd(start) => {
-                (start, file_len as usize)
-            }
+            RangeFromHeader::OpenEnd(start) => (start, file_len),
             RangeFromHeader::ClosedEnd(start, end) => (start, end),
         };
 
-        if let Ok(_) = file.seek(SeekFrom::Start(start as u64)) {
+        if let Ok(_) = file.seek(SeekFrom::Start(start)) {
             let mime = mime_guess::from_path(self.path).first();
             let mut response = Response::build();
 
             if let Some(mime) = mime {
-                response.header(Header::new("Content-Range", format!("bytes {}-{}/{}", start, end, file_len)));
+                response.header(Header::new(
+                    "Content-Range",
+                    format!("bytes {}-{}/{}", start, end, file_len),
+                ));
                 response.header(Header::new("Accept-Ranges", "bytes"));
                 response.header(Header::new("Content-Length", (end - start).to_string()));
                 response.header(Header::new("Content-Type", String::from(mime.as_ref())));
@@ -57,7 +58,7 @@ impl<'a> Responder<'a> for StreamResponder {
 
             return response
                 .header(Header::new("Accept-Ranges", "bytes"))
-                .streamed_body(file.take((end - start) as u64))
+                .streamed_body(file.take(end - start))
                 .ok();
         }
 

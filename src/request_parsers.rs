@@ -1,13 +1,13 @@
-use std::convert::Infallible;
-use rocket::{Outcome};
 use rocket::request;
-use rocket::request::{Request, FromRequest};
+use rocket::request::{FromRequest, Request};
+use rocket::Outcome;
+use std::convert::Infallible;
 
 #[derive(Debug)]
 pub enum RangeFromHeader {
     Nope,
-    OpenEnd(usize),
-    ClosedEnd(usize, usize)
+    OpenEnd(u64),
+    ClosedEnd(u64, u64),
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for RangeFromHeader {
@@ -21,9 +21,9 @@ impl<'a, 'r> FromRequest<'a, 'r> for RangeFromHeader {
         }
 
         let range = &(range_header.unwrap())["bytes=".len()..];
-        let ranges: Vec<Result<usize, core::num::ParseIntError>> = String::from(range)
+        let ranges: Vec<Result<u64, core::num::ParseIntError>> = String::from(range)
             .split("-")
-            .map(|s| str::parse::<usize>(s))
+            .map(|s| str::parse::<u64>(s))
             .collect();
 
         if let Ok(start) = ranges[0] {
