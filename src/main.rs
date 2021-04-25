@@ -4,17 +4,17 @@
 extern crate rocket;
 
 mod app_context;
-mod request_parsers;
+mod guards;
 mod routers;
 
 use app_context::{bins, init_app};
-use request_parsers::RangeFromHeader;
+use guards::range_header;
 use rocket_contrib::serve::StaticFiles;
+use routers::{dirs::DirsResponder, streams::StreamResponder};
 use std::path::PathBuf;
-use routers::{streams::StreamResponder, dirs::{DirsResponder}};
 
 #[get("/<path..>")]
-fn dirs (path: PathBuf) -> DirsResponder {
+fn dirs(path: PathBuf) -> DirsResponder {
     DirsResponder::new(path)
 }
 #[get("/")]
@@ -23,7 +23,7 @@ fn dirs_index() -> DirsResponder {
 }
 
 #[get("/<path..>")]
-fn streams(path: PathBuf, range: RangeFromHeader) -> StreamResponder {
+fn streams(path: PathBuf, range: range_header::RangeFromHeader) -> StreamResponder {
     StreamResponder::new(range, path)
 }
 

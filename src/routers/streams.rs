@@ -1,4 +1,4 @@
-use super::super::{app_context::bins, request_parsers::RangeFromHeader};
+use super::super::{app_context::bins, guards::range_header::RangeFromHeader};
 use rocket::http::{Header, Status};
 use rocket::request::Request;
 use rocket::response::{self, Redirect, Responder};
