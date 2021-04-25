@@ -3,19 +3,20 @@
 #[macro_use]
 extern crate rocket;
 
+mod app_context;
 mod request_parsers;
 mod responders;
-mod app_context;
 
-use std::path::{PathBuf};
-use rocket_contrib::serve::{StaticFiles};
-use request_parsers::RangeFromHeader;
-use responders::stream_responder::{StreamResponder};
 use app_context::{bins, init_app};
+use request_parsers::RangeFromHeader;
+use responders::stream_responder::StreamResponder;
+use rocket_contrib::serve::StaticFiles;
+use std::path::PathBuf;
 
 #[get("/<path..>")]
 fn dirs(path: PathBuf) -> String {
-    bins().join(path)
+    bins()
+        .join(path)
         .as_os_str()
         .to_string_lossy()
         .to_owned()
