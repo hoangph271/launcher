@@ -8,9 +8,9 @@ mod guards;
 mod routers;
 
 use app_context::{bins, init_app};
-use guards::range_header;
 use rocket_contrib::serve::StaticFiles;
-use routers::{dirs::DirsResponder, streams::StreamResponder};
+use routers::{dirs::DirsResponder, streams};
+use rocket::{Response, http::Status};
 use std::path::PathBuf;
 
 #[get("/<path..>")]
@@ -22,15 +22,10 @@ fn dirs_index() -> DirsResponder {
     dirs(PathBuf::from(""))
 }
 
-#[get("/<path..>")]
-fn streams(path: PathBuf, range: range_header::RangeFromHeader) -> StreamResponder {
-    StreamResponder::new(range, path)
-}
-
 #[catch(404)]
-fn not_found<'r>() -> rocket::Response<'r> {
-    rocket::Response::build()
-        .status(rocket::http::Status::raw(418))
+fn not_found<'r>() -> Response<'r> {
+    Response::build()
+        .status(Status::ImATeapot)
         .finalize()
 }
 
@@ -39,7 +34,10 @@ fn main() {
 
     rocket::ignite()
         .mount("/bins", StaticFiles::from(bins()))
-        .mount("/streams", routes![streams])
+        .mount(
+            "/streams",
+            routes![streams::stream_down, streams::stream_up],
+        )
         .mount("/dirs", routes![dirs, dirs_index])
         .register(catchers![not_found])
         .launch();
