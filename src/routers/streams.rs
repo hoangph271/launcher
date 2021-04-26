@@ -65,3 +65,24 @@ impl<'a> Responder<'a> for StreamResponder {
         Err(Status::BadRequest)
     }
 }
+
+#[get("/<path..>")]
+pub fn stream_down(path: PathBuf, range: RangeFromHeader) -> StreamResponder {
+    StreamResponder::new(range, path)
+}
+
+#[post("/<path..>", data = "<stream>")]
+pub fn stream_up<'r>(path: PathBuf, stream: rocket::Data) -> rocket::response::Result<'r> {
+    if stream.peek_complete() {
+        return Err(rocket::http::Status::BadRequest);
+    }
+
+    stream.stream_to_file(bins().join(path)).map_err(|e| {
+        println!("{:?}", e);
+        rocket::http::Status::InternalServerError
+    })?;
+
+    return Ok(rocket::Response::build()
+        .status(rocket::http::Status::Created)
+        .finalize());
+}
