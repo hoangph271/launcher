@@ -4,6 +4,7 @@ use rocket::response::{self, Responder};
 use rocket_contrib::json::Json;
 use serde::Serialize;
 use std::path::PathBuf;
+use std::fs::{File, Metadata, read_dir};
 use std::time::UNIX_EPOCH;
 
 #[derive(Debug, Serialize)]
@@ -16,9 +17,9 @@ pub struct FSEntry {
     created: u128,
     modified: u128,
 }
-fn read_file_entry(path: PathBuf) -> FSEntry {
+fn read_entry(path: PathBuf) -> FSEntry {
     let file_path = bins().join(path.to_owned());
-    let file = std::fs::File::open(file_path).unwrap();
+    let file = File::open(file_path).unwrap();
     let metadata = file.metadata().unwrap();
 
     let mime = mime_guess::from_path(path.to_owned()).first();
@@ -26,7 +27,7 @@ fn read_file_entry(path: PathBuf) -> FSEntry {
 
     FSEntry {
         key: path.to_string_lossy().as_ref().to_string(),
-        is_dir: false,
+        is_dir: metadata.is_dir(),
         children: None,
         mime: if let Some(mime) = mime {
             Some(mime.as_ref().to_string())
@@ -38,7 +39,7 @@ fn read_file_entry(path: PathBuf) -> FSEntry {
         modified,
     }
 }
-fn extract_timestamps(metadata: &std::fs::Metadata) -> (u128, u128) {
+fn extract_timestamps(metadata: &Metadata) -> (u128, u128) {
     let created = metadata
         .created()
         .unwrap()
@@ -70,24 +71,13 @@ impl<'a> Responder<'a> for DirsResponder {
 }
 
 pub fn dirs(path: PathBuf) -> Json<FSEntry> {
-    use std::fs::File;
     let item_path = bins().join(path.to_owned());
-    let file = File::open(item_path.to_owned())
-        .map_err(|e| {
-            // TODO: Handle in seperate Responder...?
-            println!("{:?}", e);
-        })
-        .unwrap();
-    let metadata = file.metadata().unwrap();
+    let mut fs_entry = read_entry(item_path.to_owned());
 
-    if metadata.is_file() {
-        return Json(read_file_entry(path));
-    }
-
-    let children = std::fs::read_dir(item_path.to_owned())
+    let children = read_dir(item_path)
         .unwrap()
         .map(|entry| {
-            read_file_entry(
+            read_entry(
                 entry
                     .unwrap()
                     .path()
@@ -97,15 +87,8 @@ pub fn dirs(path: PathBuf) -> Json<FSEntry> {
             )
         })
         .collect::<Vec<FSEntry>>();
-    let (created, modified) = extract_timestamps(&metadata);
 
-    Json(FSEntry {
-        key: path.to_string_lossy().as_ref().to_string(),
-        is_dir: metadata.is_dir(),
-        children: Some(children),
-        size: None,
-        mime: None,
-        created,
-        modified,
-    })
+    fs_entry.children = Some(children);
+
+    Json(fs_entry)
 }
