@@ -27,6 +27,13 @@ fn streams(path: PathBuf, range: range_header::RangeFromHeader) -> StreamRespond
     StreamResponder::new(range, path)
 }
 
+#[catch(404)]
+fn not_found<'r>() -> rocket::Response<'r> {
+    rocket::Response::build()
+        .status(rocket::http::Status::raw(418))
+        .finalize()
+}
+
 fn main() {
     init_app();
 
@@ -34,5 +41,6 @@ fn main() {
         .mount("/bins", StaticFiles::from(bins()))
         .mount("/streams", routes![streams])
         .mount("/dirs", routes![dirs, dirs_index])
+        .register(catchers![not_found])
         .launch();
 }

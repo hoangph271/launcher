@@ -11,11 +11,11 @@ use std::time::UNIX_EPOCH;
 pub struct FSEntry {
     key: String,
     is_dir: bool,
-    children: Option<Vec<FSEntry>>,
     size: Option<u64>,
     mime: Option<String>,
     created: u128,
     modified: u128,
+    children: Option<Vec<FSEntry>>,
 }
 fn read_entry(path: PathBuf) -> FSEntry {
     let file_path = bins().join(path.to_owned());
@@ -72,7 +72,7 @@ impl<'a> Responder<'a> for DirsResponder {
 
 pub fn dirs(path: PathBuf) -> Json<FSEntry> {
     let item_path = bins().join(path.to_owned());
-    let mut fs_entry = read_entry(item_path.to_owned());
+    let mut fs_entry = read_entry(path);
 
     let children = read_dir(item_path)
         .unwrap()
