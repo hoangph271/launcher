@@ -4,6 +4,8 @@
 extern crate diesel;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
 
 mod app_context;
 mod guards;
@@ -30,29 +32,35 @@ fn dirs_index() -> DirsResponder {
 fn not_found<'r>() -> Response<'r> {
     Response::build().status(Status::ImATeapot).finalize()
 }
+use self::diesel::prelude::*;
+use self::libs::models::{User, UserData};
+use self::libs::schema::users;
+use self::libs::schema::users::dsl::*;
+use rocket_contrib::json::*;
+use serde::Deserialize;
 
-
-#[get("/")]
-fn users<'a>() -> rocket_contrib::json::JsonValue {
-    use self::diesel::dsl::sql;
-    use self::libs::models::*;
-    use self::diesel::prelude::*;
-    use self::libs::schema::users;
-    use self::libs::schema::users::dsl::*;
-
+#[derive(Deserialize, Debug, AsChangeset)]
+#[table_name = "users"]
+struct NewUser {
+    email: String,
+    nickname: String,
+}
+#[post("/", data = "<new_user>")]
+fn create_user<'r>(new_user: Json<NewUser>) -> Status {
     let conn = libs::establish_connection();
-    let new_id = nanoid!();
+    let email_existed =
+        diesel::select(diesel::dsl::exists(users.filter(email.eq(&new_user.email))))
+            .get_result(&conn)
+            .unwrap();
 
-    // ! DEL all users
-    diesel::delete(users.filter(sql("1 = 1")))
-        .execute(&conn)
-        .unwrap();
+    if email_existed {
+        // TODO: This...? 409
+    }
 
-    // ! CREATE new user
-    let user = NewUser {
-        id: new_id.to_string(),
-        email: "hoangph271@gmail.com",
-        nickname: "@Me...!",
+    let user = UserData {
+        id: &nanoid!(),
+        email: &new_user.email,
+        nickname: &new_user.nickname,
     };
 
     diesel::insert_into(users::table)
@@ -60,32 +68,47 @@ fn users<'a>() -> rocket_contrib::json::JsonValue {
         .execute(&conn)
         .expect("Insert user failed...!");
 
-    // ? READ all users
-    let all_users: Vec<User> = users.limit(1).load::<User>(&conn).expect("");
-    let user = all_users.get(0).unwrap();
+    Status::Ok
+}
+#[get("/<user_id>")]
+fn get_user<'a>(user_id: String) -> JsonValue {
+    let conn = libs::establish_connection();
 
-    // ? UPDATE first user
-    diesel::update(users.find(&user.id))
-        .set(nickname.eq("me"))
+    let user = users.find(user_id).first::<User>(&conn).unwrap();
+    json!(user)
+}
+#[get("/")]
+fn get_users<'a>() -> JsonValue {
+    let conn = libs::establish_connection();
+
+    let all_users = users.load::<User>(&conn).unwrap();
+    json!(all_users)
+}
+#[put("/<user_id>", data = "<user>")]
+fn update_user(user_id: String, user: Json<NewUser>) {
+    let conn = libs::establish_connection();
+
+    diesel::update(users.find(&user_id))
+        .set(user.into_inner())
         .execute(&conn)
         .unwrap();
+}
+#[delete("/<user_id>")]
+fn del_user(user_id: String) {
+    let conn = libs::establish_connection();
 
-    // ? READ & print all users again
-    let all_users: Vec<User> = users.limit(1).load::<User>(&conn).expect("");
-
-    // use serde_json;
-    // serde_json::to_string(&all_users).unwrap()
-    use rocket_contrib::json;
-    json!(all_users)
+    diesel::delete(users.find(user_id)).execute(&conn).unwrap();
 }
 
 fn main() {
     init_app();
-    users();
 
     rocket::ignite()
         .mount("/bins", StaticFiles::from(bins()))
-        .mount("/users", routes![users])
+        .mount(
+            "/users",
+            routes![get_user, get_users, create_user, del_user, update_user],
+        )
         .mount(
             "/streams",
             routes![streams::stream_down, streams::stream_up],
