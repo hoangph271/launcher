@@ -3,8 +3,8 @@ use rocket::request::Request;
 use rocket::response::{self, Responder};
 use rocket_contrib::json::Json;
 use serde::Serialize;
+use std::fs::{read_dir, File, Metadata};
 use std::path::PathBuf;
-use std::fs::{File, Metadata, read_dir};
 use std::time::UNIX_EPOCH;
 
 #[derive(Debug, Serialize)]
@@ -91,4 +91,14 @@ pub fn dirs(path: PathBuf) -> Json<FSEntry> {
     fs_entry.children = Some(children);
 
     Json(fs_entry)
+}
+
+#[get("/<path..>")]
+pub fn get_dir(path: PathBuf) -> DirsResponder {
+    DirsResponder::new(path)
+}
+
+#[get("/")]
+pub fn get_index_dir() -> DirsResponder {
+    get_dir(PathBuf::from(""))
 }
