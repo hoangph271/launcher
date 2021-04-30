@@ -54,26 +54,31 @@ pub fn get_user<'a>(user_id: String) -> EZRespond<'a> {
 }
 
 #[get("/")]
-pub fn get_users<'a>() -> JsonValue {
+pub fn get_users<'a>() -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    let all_users = users.load::<User>(&conn).unwrap();
-    json!(all_users)
+    if let Ok(all_users) = users.load::<User>(&conn) {
+        EZRespond::json(json!(all_users), None)
+    } else {
+        EZRespond::by_status(Status::InternalServerError)
+    }
 }
 
 #[put("/<user_id>", data = "<user>")]
-pub fn update_user(user_id: String, user: Json<NewUser>) {
+pub fn update_user<'a>(user_id: String, user: Json<NewUser>) -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    diesel::update(users.find(&user_id))
+    let rows_count = diesel::update(users.find(&user_id))
         .set(user.into_inner())
-        .execute(&conn)
-        .unwrap();
+        .execute(&conn);
+
+    EZRespond::by_db_changed(rows_count)
 }
 
 #[delete("/<user_id>")]
-pub fn delete_user(user_id: String) {
+pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
     let conn = libs::establish_connection();
+    let rows_count = diesel::delete(users.find(user_id)).execute(&conn);
 
-    diesel::delete(users.find(user_id)).execute(&conn).unwrap();
+    EZRespond::by_db_changed(rows_count)
 }

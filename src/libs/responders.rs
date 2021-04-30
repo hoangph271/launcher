@@ -50,6 +50,19 @@ impl<'a> EZRespond<'a> {
             status: Some(status),
         }
     }
+
+    pub fn by_db_changed<'r>(rows_count: Result<usize, diesel::result::Error>) -> EZRespond<'r> {
+        if let Ok(rows_count) = rows_count {
+            return if rows_count == 0 {
+                EZRespond::by_status(Status::NotFound)
+            } else {
+                EZRespond::by_status(Status::Ok)
+            };
+        }
+
+        println!("Error running query: {:?}", rows_count);
+        return EZRespond::by_status(Status::InternalServerError);
+    }
 }
 
 impl<'a> Responder<'a> for EZRespond<'a> {
