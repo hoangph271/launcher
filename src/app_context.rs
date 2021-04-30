@@ -2,7 +2,7 @@ use std::env::current_dir;
 use std::path::PathBuf;
 
 pub fn cwd() -> PathBuf {
-    current_dir().unwrap()
+    current_dir().expect("failed getting cwd")
 }
 
 pub fn bins() -> PathBuf {
@@ -10,8 +10,9 @@ pub fn bins() -> PathBuf {
 }
 
 pub fn init_app() {
-    use std::fs;
+    use std::fs::create_dir_all;
+    dotenv::dotenv().expect("Error loading .env");
 
     // ? Create "bins" directory
-    fs::create_dir_all(bins()).unwrap();
+    create_dir_all(bins()).expect("failed creating bins/");
 }

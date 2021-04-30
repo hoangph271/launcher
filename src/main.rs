@@ -13,14 +13,8 @@ mod libs;
 mod routers;
 
 use app_context::{bins, init_app};
-use rocket::{http::Status, Response};
 use rocket_contrib::serve::StaticFiles;
-use routers::{dirs, streams, users};
-
-#[catch(404)]
-fn not_found<'r>() -> Response<'r> {
-    Response::build().status(Status::ImATeapot).finalize()
-}
+use routers::{dirs, streams, users, others};
 
 fn main() {
     init_app();
@@ -42,6 +36,7 @@ fn main() {
             routes![streams::stream_down, streams::stream_up],
         )
         .mount("/dirs", routes![dirs::get_dir, dirs::get_index_dir])
-        .register(catchers![not_found])
+        .mount("/status", routes![others::status])
+        .register(catchers![others::not_found, others::unauthorized])
         .launch();
 }

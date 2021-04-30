@@ -117,6 +117,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
+name = "cc"
+version = "1.0.67"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3c69b077ad434294d3ce9f1f6143a2a4b89a8a2d54ef813d85003a4fd1137fd"
+
+[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -473,6 +479,7 @@ checksum = "a91d884b6667cd606bb5a69aa0c99ba811a115fc68915e7056ec08a46e93199a"
 name = "launcher"
 version = "0.1.0"
 dependencies = [
+ "base64 0.13.0",
  "diesel",
  "dotenv",
  "mime_guess",
@@ -481,6 +488,7 @@ dependencies = [
  "rocket_contrib",
  "serde",
  "serde_json",
+ "sys-info",
 ]
 
 [[package]]
@@ -974,6 +982,16 @@ dependencies = [
  "proc-macro2 1.0.26",
  "quote 1.0.9",
  "unicode-xid 0.2.1",
+]
+
+[[package]]
+name = "sys-info"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33fcecee49339531cf6bd84ecf3ed94f9c8ef4a7e700f2a1cac9cc1ca485383a"
+dependencies = [
+ "cc",
+ "libc",
 ]
 
 [[package]]
