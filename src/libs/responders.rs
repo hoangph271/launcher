@@ -27,6 +27,8 @@ impl<'a> EZRespond<'a> {
             Status::Created => Body::Text(response_messsage::CREATED),
             Status::Conflict => Body::Text(response_messsage::CONFLICT),
             Status::NotFound => Body::Text(response_messsage::NOT_FOUND),
+            Status::InternalServerError => Body::Text(response_messsage::INTERNAL_SERVER_ERROR),
+            Status::ImATeapot => Body::Text(response_messsage::IM_A_TEAPOT),
             _ => Body::Empty,
         };
 
@@ -70,8 +72,7 @@ impl<'a> Responder<'a> for EZRespond<'a> {
                 response.sized_body(Cursor::new(text));
             }
             Body::Json(json) => {
-                let json = json.as_str().clone().expect("Invalid JSON body");
-                response.sized_body(Cursor::new(String::from(json)));
+                response.sized_body(Cursor::new(json.to_string()));
             }
             Body::Empty => {}
         }
