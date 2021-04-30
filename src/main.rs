@@ -11,6 +11,7 @@ mod app_context;
 mod guards;
 mod libs;
 mod routers;
+mod constants;
 
 use app_context::{bins, init_app};
 use rocket_contrib::serve::StaticFiles;
