@@ -1,6 +1,7 @@
 use super::super::diesel::prelude::*;
 use super::super::libs;
 use super::super::libs::models::{User, UserData};
+use super::super::libs::responders::EZRespond;
 use super::super::libs::schema::users;
 use super::super::libs::schema::users::dsl::*;
 use nanoid::nanoid;
@@ -16,7 +17,7 @@ pub struct NewUser {
 }
 
 #[post("/", data = "<new_user>")]
-pub fn post_user<'r>(new_user: Json<NewUser>) -> Status {
+pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
     let conn = libs::establish_connection();
     let email_existed =
         diesel::select(diesel::dsl::exists(users.filter(email.eq(&new_user.email))))
@@ -24,7 +25,7 @@ pub fn post_user<'r>(new_user: Json<NewUser>) -> Status {
             .unwrap();
 
     if email_existed {
-        // TODO: This...? 409
+        return EZRespond::by_status(Status::Conflict);
     }
 
     let user = UserData {
@@ -38,39 +39,46 @@ pub fn post_user<'r>(new_user: Json<NewUser>) -> Status {
         .execute(&conn)
         .expect("Insert user failed...!");
 
-    Status::Ok
+    EZRespond::by_status(Status::Created)
 }
 
 #[get("/<user_id>")]
-pub fn get_user(user_id: String) -> JsonValue {
+pub fn get_user<'a>(user_id: String) -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    let user = users.find(user_id).first::<User>(&conn).unwrap();
-
-    json!(user)
+    if let Ok(user) = users.find(user_id).first::<User>(&conn) {
+        EZRespond::json(json!(user), None)
+    } else {
+        EZRespond::by_status(Status::NotFound)
+    }
 }
 
 #[get("/")]
-pub fn get_users<'a>() -> JsonValue {
+pub fn get_users<'a>() -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    let all_users = users.load::<User>(&conn).unwrap();
-    json!(all_users)
+    if let Ok(all_users) = users.load::<User>(&conn) {
+        EZRespond::json(json!(all_users), None)
+    } else {
+        EZRespond::by_status(Status::InternalServerError)
+    }
 }
 
 #[put("/<user_id>", data = "<user>")]
-pub fn update_user(user_id: String, user: Json<NewUser>) {
+pub fn update_user<'a>(user_id: String, user: Json<NewUser>) -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    diesel::update(users.find(&user_id))
+    let rows_count = diesel::update(users.find(&user_id))
         .set(user.into_inner())
-        .execute(&conn)
-        .unwrap();
+        .execute(&conn);
+
+    EZRespond::by_db_changed(rows_count)
 }
 
 #[delete("/<user_id>")]
-pub fn delete_user(user_id: String) {
+pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
     let conn = libs::establish_connection();
+    let rows_count = diesel::delete(users.find(user_id)).execute(&conn);
 
-    diesel::delete(users.find(user_id)).execute(&conn).unwrap();
+    EZRespond::by_db_changed(rows_count)
 }
