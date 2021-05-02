@@ -33,7 +33,7 @@ impl<'a> EZRespond<'a> {
         };
 
         EZRespond {
-            body: body,
+            body,
             content_type: None,
             status: Some(status),
             header: None,
@@ -51,17 +51,30 @@ impl<'a> EZRespond<'a> {
         }
     }
 
-    pub fn by_db_changed<'r>(rows_count: Result<usize, diesel::result::Error>) -> EZRespond<'r> {
-        if let Ok(rows_count) = rows_count {
-            return if rows_count == 0 {
-                EZRespond::by_status(Status::NotFound)
-            } else {
-                EZRespond::by_status(Status::Ok)
-            };
+    pub fn by_db_ok<'r, T>(db_result: Result<T, diesel::result::Error>) -> EZRespond<'r> {
+        match db_result {
+            Ok(_) => EZRespond::by_status(Status::Ok),
+            Err(e) => {
+                dbg!(e);
+                EZRespond::by_status(Status::InternalServerError)
+            }
         }
+    }
 
-        println!("Error running query: {:?}", rows_count);
-        return EZRespond::by_status(Status::InternalServerError);
+    pub fn by_db_changed<'r>(db_result: Result<usize, diesel::result::Error>) -> EZRespond<'r> {
+        match db_result {
+            Ok(rows_count) => {
+                if rows_count == 0 {
+                    EZRespond::by_status(Status::NotFound)
+                } else {
+                    EZRespond::by_status(Status::Ok)
+                }
+            }
+            Err(e) => {
+                dbg!(e);
+                EZRespond::by_status(Status::InternalServerError)
+            }
+        }
     }
 }
 
@@ -76,7 +89,7 @@ impl<'a> Responder<'a> for EZRespond<'a> {
             response.header(content_type);
         }
 
-        for header in self.header.unwrap_or(vec![]) {
+        for header in self.header.unwrap_or_else(|| vec![]) {
             response.header(header);
         }
 

@@ -29,11 +29,7 @@ fn read_entry(path: PathBuf) -> FSEntry {
         key: path.to_string_lossy().as_ref().to_string(),
         is_dir: metadata.is_dir(),
         children: None,
-        mime: if let Some(mime) = mime {
-            Some(mime.as_ref().to_string())
-        } else {
-            None
-        },
+        mime: mime.map(|mime| mime.as_ref().to_string()),
         size: Some(metadata.len()),
         created,
         modified,

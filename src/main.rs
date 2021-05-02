@@ -8,14 +8,14 @@ extern crate rocket;
 extern crate rocket_contrib;
 
 mod app_context;
+mod constants;
 mod guards;
 mod libs;
 mod routers;
-mod constants;
 
 use app_context::{bins, init_app};
 use rocket_contrib::serve::StaticFiles;
-use routers::{dirs, streams, users, others};
+use routers::{dirs, others, streams, users};
 
 fn main() {
     init_app();
