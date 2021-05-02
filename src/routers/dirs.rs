@@ -34,6 +34,29 @@ fn read_entry(path: PathBuf) -> FSEntry {
         modified,
     }
 }
+fn read_children(path: PathBuf) -> Option<Vec<FSEntry>> {
+    let metadata = metadata(path.clone()).expect("read_children() failed at metadata()");
+
+    if metadata.is_file() {
+        return None;
+    }
+
+    let children = read_dir(path)
+        .unwrap()
+        .map(|entry| {
+            read_entry(
+                entry
+                    .unwrap()
+                    .path()
+                    .strip_prefix(bins())
+                    .unwrap()
+                    .to_path_buf(),
+            )
+        })
+        .collect::<Vec<FSEntry>>();
+
+    Some(children)
+}
 fn extract_timestamps(metadata: &Metadata) -> (u128, u128) {
     let created = metadata
         .created()
@@ -69,21 +92,7 @@ pub fn dirs(path: PathBuf) -> Json<FSEntry> {
     let item_path = bins().join(path.to_owned());
     let mut fs_entry = read_entry(path);
 
-    let children = read_dir(item_path)
-        .unwrap()
-        .map(|entry| {
-            read_entry(
-                entry
-                    .unwrap()
-                    .path()
-                    .strip_prefix(bins())
-                    .unwrap()
-                    .to_path_buf(),
-            )
-        })
-        .collect::<Vec<FSEntry>>();
-
-    fs_entry.children = Some(children);
+    fs_entry.children = read_children(item_path);
 
     Json(fs_entry)
 }
