@@ -2,8 +2,8 @@ pub mod models;
 pub mod responders;
 pub mod schema;
 
-use diesel::prelude::*;
 use diesel::mysql::MysqlConnection;
+use diesel::prelude::*;
 use std::env;
 
 pub fn establish_connection() -> MysqlConnection {

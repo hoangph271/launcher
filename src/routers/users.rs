@@ -58,9 +58,7 @@ pub fn get_users<'a>() -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
     match users.load::<User>(&conn) {
-        Ok(all_users) => {
-            EZRespond::json(json!(all_users), None)
-        },
+        Ok(all_users) => EZRespond::json(json!(all_users), None),
         Err(e) => {
             dbg!(e);
             EZRespond::by_status(Status::InternalServerError)

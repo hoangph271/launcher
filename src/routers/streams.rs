@@ -23,7 +23,8 @@ impl<'a> Responder<'a> for StreamResponder {
         let file_path = bins().join(self.path.to_owned());
         let file = File::open(file_path.clone());
 
-        if let Err(_) = file {
+        if let Err(e) = file {
+            dbg!(e);
             return Err(Status::NotFound);
         }
 
@@ -42,7 +43,7 @@ impl<'a> Responder<'a> for StreamResponder {
             RangeFromHeader::ClosedEnd(start, end) => (start, end),
         };
 
-        if let Ok(_) = file.seek(SeekFrom::Start(start)) {
+        if file.seek(SeekFrom::Start(start)).is_ok() {
             let mime = mime_guess::from_path(self.path).first();
             let mut response = Response::build();
 
