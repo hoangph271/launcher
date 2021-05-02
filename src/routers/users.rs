@@ -1,12 +1,10 @@
 use super::super::constants::auth_type;
 use super::super::diesel::prelude::*;
-use super::super::libs;
-use super::super::libs::models::{AuthData, User, UserData};
+use dal::{establish_connection, models::{AuthData, User, UserData}};
 use super::super::libs::responders::EZRespond;
-use super::super::libs::schema::auths::dsl::*;
-use super::super::libs::schema::users::dsl::*;
-use super::super::libs::schema::{auths, users};
-// use diesel::result::Error;
+use dal::schema::auths::dsl::*;
+use dal::schema::users::dsl::*;
+use dal::schema::{auths, users};
 use anyhow::Error;
 use nanoid::nanoid;
 use rocket::http::Status;
@@ -29,7 +27,7 @@ pub struct UserPayload {
 
 #[post("/", data = "<new_user>")]
 pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
     let email_existed = diesel::select(diesel::dsl::exists(
         users.filter(users::email.eq(&new_user.email)),
     ))
@@ -78,7 +76,7 @@ pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
 
 #[get("/<user_id>")]
 pub fn get_user<'a>(user_id: String) -> EZRespond<'a> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
 
     if let Ok(user) = users.find(user_id).first::<User>(&conn) {
         EZRespond::json(json!(user), None)
@@ -89,7 +87,7 @@ pub fn get_user<'a>(user_id: String) -> EZRespond<'a> {
 
 #[get("/")]
 pub fn get_users<'a>() -> EZRespond<'a> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
 
     match users.load::<User>(&conn) {
         Ok(all_users) => EZRespond::json(json!(all_users), None),
@@ -102,7 +100,7 @@ pub fn get_users<'a>() -> EZRespond<'a> {
 
 #[put("/<user_id>", data = "<user>")]
 pub fn update_user<'a>(user_id: String, user: Json<UserPayload>) -> EZRespond<'a> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
 
     let rows_count = diesel::update(users.find(&user_id))
         .set(user.into_inner())
@@ -113,7 +111,7 @@ pub fn update_user<'a>(user_id: String, user: Json<UserPayload>) -> EZRespond<'a
 
 #[delete("/<user_id>")]
 pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
 
     let transaction = conn.transaction::<_, Error, _>(|| {
         let user = users

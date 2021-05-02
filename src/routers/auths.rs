@@ -1,8 +1,7 @@
 use super::super::diesel::prelude::*;
-use super::super::libs;
-use super::super::libs::models::Auth;
+use dal::{establish_connection, models::{Auth}};
+use dal::schema::auths::dsl::*;
 use super::super::libs::responders::EZRespond;
-use super::super::libs::schema::auths::dsl::*;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use rocket::http::Status;
 use rocket_contrib::json::*;
@@ -22,7 +21,7 @@ struct Claims {
 
 #[post("/", data = "<login_payload>")]
 pub fn login<'r>(login_payload: Json<LoginPayload>) -> EZRespond<'r> {
-    let conn = libs::establish_connection();
+    let conn = establish_connection();
 
     let auth = auths
         .filter(email.eq(&login_payload.email))
