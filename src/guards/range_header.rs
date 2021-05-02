@@ -16,13 +16,13 @@ impl<'a, 'r> FromRequest<'a, 'r> for RangeFromHeader {
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let range_header = request.headers().get_one("range");
 
-        if let None = range_header {
+        if range_header.is_none() {
             return Outcome::Success(RangeFromHeader::Nope);
         }
 
         let range = &(range_header.unwrap())["bytes=".len()..];
         let ranges: Vec<Result<u64, core::num::ParseIntError>> = String::from(range)
-            .split("-")
+            .split('-')
             .map(|s| str::parse::<u64>(s))
             .collect();
 

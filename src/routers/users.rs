@@ -57,10 +57,14 @@ pub fn get_user<'a>(user_id: String) -> EZRespond<'a> {
 pub fn get_users<'a>() -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
-    if let Ok(all_users) = users.load::<User>(&conn) {
-        EZRespond::json(json!(all_users), None)
-    } else {
-        EZRespond::by_status(Status::InternalServerError)
+    match users.load::<User>(&conn) {
+        Ok(all_users) => {
+            EZRespond::json(json!(all_users), None)
+        },
+        Err(e) => {
+            dbg!(e);
+            EZRespond::by_status(Status::InternalServerError)
+        }
     }
 }
 
@@ -78,7 +82,7 @@ pub fn update_user<'a>(user_id: String, user: Json<NewUser>) -> EZRespond<'a> {
 #[delete("/<user_id>")]
 pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
     let conn = libs::establish_connection();
-    let rows_count = diesel::delete(users.find(user_id)).execute(&conn);
+    let db_result = diesel::delete(users.find(user_id)).execute(&conn);
 
-    EZRespond::by_db_changed(rows_count)
+    EZRespond::by_db_ok(db_result)
 }

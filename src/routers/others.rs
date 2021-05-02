@@ -112,7 +112,6 @@ pub struct SystemStatus {
 fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
     let err_mapper = |e| {
         dbg!(e);
-        ()
     };
 
     let disk_info = sys_info::disk_info().map_err(err_mapper)?;
@@ -137,11 +136,11 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
             avail: memory.avail,
             free: memory.free,
         },
-        hostname: hostname,
-        cpu_num: cpu_num,
+        hostname,
+        cpu_num,
         os: OsInfo {
             release: os_release,
-            os_type: os_type,
+            os_type,
         },
     })
 }
@@ -149,9 +148,7 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
 #[get("/")]
 pub fn status<'r>(basic_auth: BasicAuth) -> EZRespond<'r> {
     match get_system_status(&basic_auth) {
-        Ok(system_status) => {
-            EZRespond::json(json!(system_status), None)
-        }
+        Ok(system_status) => EZRespond::json(json!(system_status), None),
         Err(_) => EZRespond::by_status(Status::InternalServerError),
     }
 }

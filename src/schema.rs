@@ -1,7 +1,7 @@
 table! {
     users (id) {
-        id -> Text,
-        email -> Text,
+        id -> Varchar,
+        email -> Varchar,
         nickname -> Text,
     }
 }
