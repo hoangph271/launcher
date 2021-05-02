@@ -2,8 +2,8 @@ pub mod models;
 pub mod responders;
 pub mod schema;
 
-use diesel::sqlite::SqliteConnection;
 use diesel::prelude::*;
+use diesel::sqlite::SqliteConnection;
 use std::env;
 
 pub fn establish_connection() -> SqliteConnection {
