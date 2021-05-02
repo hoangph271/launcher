@@ -29,6 +29,7 @@ impl<'a> EZRespond<'a> {
             Status::NotFound => Body::Text(response_messsage::NOT_FOUND),
             Status::InternalServerError => Body::Text(response_messsage::INTERNAL_SERVER_ERROR),
             Status::ImATeapot => Body::Text(response_messsage::IM_A_TEAPOT),
+            Status::Unauthorized => Body::Text(response_messsage::UNAUTHORIZED),
             _ => Body::Empty,
         };
 
