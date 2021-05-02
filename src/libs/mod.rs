@@ -2,12 +2,12 @@ pub mod models;
 pub mod responders;
 pub mod schema;
 
-use diesel::mysql::MysqlConnection;
+use diesel::sqlite::SqliteConnection;
 use diesel::prelude::*;
 use std::env;
 
-pub fn establish_connection() -> MysqlConnection {
+pub fn establish_connection() -> SqliteConnection {
     let database_url = env::var("DATABASE_URL").unwrap();
 
-    MysqlConnection::establish(&database_url).unwrap()
+    SqliteConnection::establish(&database_url).unwrap()
 }
