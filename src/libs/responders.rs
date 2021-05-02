@@ -29,6 +29,7 @@ impl<'a> EZRespond<'a> {
             Status::NotFound => Body::Text(response_messsage::NOT_FOUND),
             Status::InternalServerError => Body::Text(response_messsage::INTERNAL_SERVER_ERROR),
             Status::ImATeapot => Body::Text(response_messsage::IM_A_TEAPOT),
+            Status::Unauthorized => Body::Text(response_messsage::UNAUTHORIZED),
             _ => Body::Empty,
         };
 
@@ -51,6 +52,7 @@ impl<'a> EZRespond<'a> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn by_db_ok<'r, T>(db_result: Result<T, diesel::result::Error>) -> EZRespond<'r> {
         match db_result {
             Ok(_) => EZRespond::by_status(Status::Ok),

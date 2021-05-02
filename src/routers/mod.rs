@@ -1,3 +1,4 @@
+pub mod auths;
 pub mod dirs;
 pub mod others;
 pub mod streams;

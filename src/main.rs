@@ -15,7 +15,7 @@ mod routers;
 
 use app_context::{bins, init_app};
 use rocket_contrib::serve::StaticFiles;
-use routers::{dirs, others, streams, users};
+use routers::{auths, dirs, others, streams, users};
 
 fn main() {
     init_app();
@@ -32,6 +32,7 @@ fn main() {
                 users::update_user
             ],
         )
+        .mount("/auths", routes![auths::login])
         .mount(
             "/streams",
             routes![streams::stream_down, streams::stream_up],
