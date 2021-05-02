@@ -6,7 +6,8 @@ use super::super::libs::responders::EZRespond;
 use super::super::libs::schema::auths::dsl::*;
 use super::super::libs::schema::users::dsl::*;
 use super::super::libs::schema::{auths, users};
-use diesel::result::Error;
+// use diesel::result::Error;
+use anyhow::Error;
 use nanoid::nanoid;
 use rocket::http::Status;
 use rocket_contrib::json::*;
@@ -50,11 +51,14 @@ pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
             .values(&user)
             .execute(&conn)?;
 
+        let bcrypt_password_hash =
+            bcrypt::hash(new_user.password.as_bytes(), bcrypt::DEFAULT_COST)?;
+
         let auth = AuthData {
             id: &nanoid!(),
             auth_type: auth_type::BASIC,
             email: user.email,
-            password_hash: &new_user.password, // TODO: Hash this
+            password_hash: &bcrypt_password_hash,
         };
 
         diesel::insert_into(auths::table)
@@ -112,7 +116,10 @@ pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
     let conn = libs::establish_connection();
 
     let transaction = conn.transaction::<_, Error, _>(|| {
-        let user = users.find(user_id.to_owned()).first::<User>(&conn).optional()?;
+        let user = users
+            .find(user_id.to_owned())
+            .first::<User>(&conn)
+            .optional()?;
 
         if let Some(user) = user {
             diesel::delete(auths.filter(auths::email.eq(user.email))).execute(&conn)?;

@@ -52,6 +52,7 @@ impl<'a> EZRespond<'a> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn by_db_ok<'r, T>(db_result: Result<T, diesel::result::Error>) -> EZRespond<'r> {
         match db_result {
             Ok(_) => EZRespond::by_status(Status::Ok),

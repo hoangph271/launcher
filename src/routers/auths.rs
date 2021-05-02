@@ -29,8 +29,7 @@ pub fn login<'r>(login_payload: Json<LoginPayload>) -> EZRespond<'r> {
         .first::<Auth>(&conn);
 
     if let Ok(auth) = auth {
-        // TODO: Hash this
-        if auth.password_hash.eq(&login_payload.password) {
+        if let Ok(true) = bcrypt::verify(login_payload.password.clone(), &auth.password_hash) {
             let claims = Claims { sub: auth.email };
 
             let jwt_secret = env::var("JWT_SECRET").expect("env::var JWT_SECRET failed...!");
