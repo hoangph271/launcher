@@ -19,8 +19,10 @@ pub struct FSEntry {
 }
 fn read_entry(path: PathBuf) -> FSEntry {
     let file_path = bins().join(path.to_owned());
-    let file = File::open(file_path).unwrap();
-    let metadata = file.metadata().unwrap();
+    let file = File::open(file_path).expect("read_entry() failed on File::open");
+    let metadata = file
+        .metadata()
+        .expect("read_entry() failed in file.metadata()");
 
     let mime = mime_guess::from_path(path.to_owned()).first();
     let (created, modified) = extract_timestamps(&metadata);
