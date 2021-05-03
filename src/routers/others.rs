@@ -5,6 +5,8 @@ use std::env;
 use std::io::Cursor;
 use std::str;
 use sys_info;
+use rocket_contrib::json::{JsonValue};
+use battery::{Battery, Manager};
 
 #[catch(404)]
 pub fn not_found<'r>() -> EZRespond<'r> {
@@ -107,12 +109,43 @@ pub struct SystemStatus {
     #[serde(rename = "cpuCount")]
     cpu_num: u32,
     os: OsInfo,
+    batteries: Vec<JsonValue>
+}
+
+fn get_battery_status() -> Result<Vec<Battery>, battery::Error> {
+    let batteries = Manager::new()?
+        .batteries()?
+        .filter(|x| x.is_ok())
+        .map(|x| x.unwrap())
+        .collect::<Vec<Battery>>();
+
+    Ok(batteries)
+}
+fn get_battery_status_json(batteries: Vec<Battery>) -> Vec<JsonValue> {
+    batteries.iter().map(|battery| {
+        json!({
+            "state": format!("{}", battery.state()),
+            "energy": format!("{:?}", battery.energy()),
+            "energyFull": format!("{:?}", battery.energy_full()),
+            "energyFullDesign": format!("{:?}", battery.energy_full_design()),
+            "voltage": format!("{:?}", battery.voltage()),
+            "health": format!("{:?}", battery.state_of_health()),
+            "vendor": battery.vendor(),
+            "cycleCount": battery.cycle_count(),
+            "model": battery.model(),
+            "serialNumber": battery.serial_number(),
+            "technology": format!("{}", battery.technology()),
+        })
+    }).collect()
 }
 
 fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
     let err_mapper = |e| {
         dbg!(e);
     };
+
+    let batteries = get_battery_status().unwrap_or_default();
+    let battery_jsons = get_battery_status_json(batteries);
 
     let disk_info = sys_info::disk_info().map_err(err_mapper)?;
     let load_avg = sys_info::loadavg().map_err(err_mapper)?;
@@ -142,6 +175,7 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
             release: os_release,
             os_type,
         },
+        batteries: battery_jsons
     })
 }
 

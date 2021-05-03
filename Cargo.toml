@@ -21,6 +21,7 @@ base64 = "0.13.0"
 jsonwebtoken = "7.2.0"
 bcrypt = "0.9.0"
 anyhow = "1.0.40"
+battery = "0.7.8"
 
 [dependencies.rocket_contrib]
 default-features = false
