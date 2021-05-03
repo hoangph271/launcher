@@ -238,6 +238,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dal"
+version = "0.1.0"
+dependencies = [
+ "diesel",
+ "serde",
+]
+
+[[package]]
 name = "devise"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -552,6 +560,7 @@ dependencies = [
  "anyhow",
  "base64 0.13.0",
  "bcrypt",
+ "dal",
  "diesel",
  "dotenv",
  "jsonwebtoken",
