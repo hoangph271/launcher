@@ -5,10 +5,11 @@ use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use std::env;
 
-pub mod auths_service;
 pub mod models;
 pub mod schema;
-pub mod users_service;
+pub mod services;
+
+pub use services::*;
 
 pub fn establish_connection() -> SqliteConnection {
     let database_url = env::var("DATABASE_URL").unwrap();
