@@ -1,25 +1,11 @@
-use super::super::libs::responders::EZRespond;
-use rocket::{http::Status, request::*, Request, Response};
+use super::super::super::libs::responders::EZRespond;
+use battery::{Battery, Manager};
+use rocket::{http::Status, request::*, Request};
+use rocket_contrib::json::JsonValue;
 use serde::*;
 use std::env;
-use std::io::Cursor;
 use std::str;
 use sys_info;
-use rocket_contrib::json::{JsonValue};
-use battery::{Battery, Manager};
-
-#[catch(404)]
-pub fn not_found<'r>() -> EZRespond<'r> {
-    EZRespond::by_status(Status::ImATeapot)
-}
-
-#[catch(401)]
-pub fn unauthorized<'r>() -> Response<'r> {
-    Response::build()
-        .status(Status::Unauthorized)
-        .sized_body(Cursor::new("401 | Unauthorized"))
-        .finalize()
-}
 
 #[derive(Debug)]
 pub struct BasicAuth {
@@ -109,7 +95,7 @@ pub struct SystemStatus {
     #[serde(rename = "cpuCount")]
     cpu_num: u32,
     os: OsInfo,
-    batteries: Vec<JsonValue>
+    batteries: Vec<JsonValue>,
 }
 
 fn get_battery_status() -> Result<Vec<Battery>, battery::Error> {
@@ -122,21 +108,24 @@ fn get_battery_status() -> Result<Vec<Battery>, battery::Error> {
     Ok(batteries)
 }
 fn get_battery_status_json(batteries: Vec<Battery>) -> Vec<JsonValue> {
-    batteries.iter().map(|battery| {
-        json!({
-            "state": format!("{}", battery.state()),
-            "energy": format!("{:?}", battery.energy()),
-            "energyFull": format!("{:?}", battery.energy_full()),
-            "energyFullDesign": format!("{:?}", battery.energy_full_design()),
-            "voltage": format!("{:?}", battery.voltage()),
-            "health": format!("{:?}", battery.state_of_health()),
-            "vendor": battery.vendor(),
-            "cycleCount": battery.cycle_count(),
-            "model": battery.model(),
-            "serialNumber": battery.serial_number(),
-            "technology": format!("{}", battery.technology()),
+    batteries
+        .iter()
+        .map(|battery| {
+            json!({
+                "state": format!("{}", battery.state()),
+                "energy": format!("{:?}", battery.energy()),
+                "energyFull": format!("{:?}", battery.energy_full()),
+                "energyFullDesign": format!("{:?}", battery.energy_full_design()),
+                "voltage": format!("{:?}", battery.voltage()),
+                "health": format!("{:?}", battery.state_of_health()),
+                "vendor": battery.vendor(),
+                "cycleCount": battery.cycle_count(),
+                "model": battery.model(),
+                "serialNumber": battery.serial_number(),
+                "technology": format!("{}", battery.technology()),
+            })
         })
-    }).collect()
+        .collect()
 }
 
 fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
@@ -175,12 +164,11 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
             release: os_release,
             os_type,
         },
-        batteries: battery_jsons
+        batteries: battery_jsons,
     })
 }
 
-#[get("/")]
-pub fn status<'r>(basic_auth: BasicAuth) -> EZRespond<'r> {
+pub fn server_status<'r>(basic_auth: BasicAuth) -> EZRespond<'r> {
     match get_system_status(&basic_auth) {
         Ok(system_status) => EZRespond::json(json!(system_status), None),
         Err(_) => EZRespond::by_status(Status::InternalServerError),

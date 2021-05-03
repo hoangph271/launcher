@@ -36,7 +36,7 @@ fn main() {
             routes![streams::stream_down, streams::stream_up],
         )
         .mount("/dirs", routes![dirs::get_dir, dirs::get_index_dir])
-        .mount("/status", routes![others::status])
+        .mount("/status", routes![others::server_status])
         .register(catchers![others::not_found, others::unauthorized])
         .launch();
 }
