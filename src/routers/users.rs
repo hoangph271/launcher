@@ -1,5 +1,5 @@
 use super::super::constants::auth_type;
-use super::super::libs::responders::EZRespond;
+use super::super::libs::{json_catcher, responders::EZRespond};
 use anyhow::Error;
 use dal::models::{AuthData, UserData};
 use dal::{auths_service, users_service};
@@ -87,19 +87,24 @@ pub struct UserPayload {
 }
 
 #[put("/<user_id>", data = "<user>")]
-pub fn update_user<'a>(user_id: String, user: Json<UserPayload>) -> EZRespond<'a> {
-    let user = user.into_inner();
+pub fn update_user<'a>(
+    user_id: String,
+    user: Result<Json<UserPayload>, JsonError>,
+) -> EZRespond<'a> {
+    json_catcher::with_json_catcher(user, |user| {
+        let user = user.into_inner();
 
-    let rows_count = users_service::update(
-        &user_id,
-        users_service::UpdatePayload {
-            email: user.email,
-            name: user.name,
-        },
-        None,
-    );
+        let rows_count = users_service::update(
+            &user_id,
+            users_service::UpdatePayload {
+                email: user.email,
+                name: user.name,
+            },
+            None,
+        );
 
-    EZRespond::by_db_changed(rows_count)
+        EZRespond::by_db_changed(rows_count)
+    })
 }
 
 #[delete("/<user_id>")]

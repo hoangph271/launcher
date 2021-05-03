@@ -5,6 +5,7 @@ pub mod response_messsage {
     pub const NOT_FOUND: &str = "404 | Not Found";
     pub const CONFLICT: &str = "409 | Conflict";
     pub const IM_A_TEAPOT: &str = "418 | I'm a teapot";
+    pub const UNPROCESSABLE_ENTITY: &str = "422 | Unprocessable Entity";
     pub const INTERNAL_SERVER_ERROR: &str = "500 | Internal Server Error";
 }
 

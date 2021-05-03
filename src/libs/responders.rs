@@ -8,29 +8,34 @@ use std::io;
 use std::io::Cursor;
 
 trait SizeBody: io::Read + io::Seek {}
-pub enum Body<'a> {
-    Empty,
-    Text(&'a str),
+pub enum Body {
+    // Empty,
+    Text(String),
     Json(JsonValue),
 }
 pub struct EZRespond<'r> {
     pub status: Option<Status>,
     pub content_type: Option<ContentType>,
     pub header: Option<Vec<Header<'r>>>,
-    pub body: Body<'r>,
+    pub body: Body,
 }
 
 impl<'a> EZRespond<'a> {
     pub fn by_status<'r>(status: Status) -> EZRespond<'r> {
         let body = match status {
-            Status::Ok => Body::Text(response_messsage::OK),
-            Status::Created => Body::Text(response_messsage::CREATED),
-            Status::Conflict => Body::Text(response_messsage::CONFLICT),
-            Status::NotFound => Body::Text(response_messsage::NOT_FOUND),
-            Status::InternalServerError => Body::Text(response_messsage::INTERNAL_SERVER_ERROR),
-            Status::ImATeapot => Body::Text(response_messsage::IM_A_TEAPOT),
-            Status::Unauthorized => Body::Text(response_messsage::UNAUTHORIZED),
-            _ => Body::Empty,
+            Status::Ok => Body::Text(String::from(response_messsage::OK)),
+            Status::Created => Body::Text(String::from(response_messsage::CREATED)),
+            Status::Conflict => Body::Text(String::from(response_messsage::CONFLICT)),
+            Status::NotFound => Body::Text(String::from(response_messsage::NOT_FOUND)),
+            Status::InternalServerError => {
+                Body::Text(String::from(response_messsage::INTERNAL_SERVER_ERROR))
+            }
+            Status::ImATeapot => Body::Text(String::from(response_messsage::IM_A_TEAPOT)),
+            Status::Unauthorized => Body::Text(String::from(response_messsage::UNAUTHORIZED)),
+            Status::UnprocessableEntity => {
+                Body::Text(String::from(response_messsage::UNPROCESSABLE_ENTITY))
+            }
+            status => Body::Text(format!("{}", status)),
         };
 
         EZRespond {
@@ -38,6 +43,17 @@ impl<'a> EZRespond<'a> {
             content_type: None,
             status: Some(status),
             header: None,
+        }
+    }
+
+    pub fn text<'r>(text: String, status: Option<Status>) -> EZRespond<'r> {
+        let status = status.unwrap_or(Status::Ok);
+
+        EZRespond {
+            body: Body::Text(text),
+            content_type: Some(ContentType::Plain),
+            header: None,
+            status: Some(status),
         }
     }
 
@@ -101,8 +117,7 @@ impl<'a> Responder<'a> for EZRespond<'a> {
             }
             Body::Json(json) => {
                 response.sized_body(Cursor::new(json.to_string()));
-            }
-            Body::Empty => {}
+            } // Body::Empty => {}
         }
 
         response.finalize().respond_to(req)

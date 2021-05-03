@@ -37,6 +37,10 @@ fn main() {
         )
         .mount("/dirs", routes![dirs::get_dir, dirs::get_index_dir])
         .mount("/status", routes![others::server_status])
-        .register(catchers![others::not_found, others::unauthorized])
+        .register(catchers![
+            others::not_found,
+            others::unauthorized,
+            others::unprocessable_entity
+        ])
         .launch();
 }
