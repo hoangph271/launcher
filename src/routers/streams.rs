@@ -44,18 +44,16 @@ impl<'a> Responder<'a> for StreamResponder {
         };
 
         if file.seek(SeekFrom::Start(start)).is_ok() {
-            let mime = mime_guess::from_path(self.path).first();
+            let mime = mime_guess::from_path(self.path).first_or_octet_stream();
             let mut response = Response::build();
 
-            if let Some(mime) = mime {
-                response.header(Header::new(
-                    "Content-Range",
-                    format!("bytes {}-{}/{}", start, end, file_len),
-                ));
-                response.header(Header::new("Accept-Ranges", "bytes"));
-                response.header(Header::new("Content-Length", (end - start).to_string()));
-                response.header(Header::new("Content-Type", String::from(mime.as_ref())));
-            }
+            response.header(Header::new(
+                "Content-Range",
+                format!("bytes {}-{}/{}", start, end, file_len),
+            ));
+            response.header(Header::new("Accept-Ranges", "bytes"));
+            response.header(Header::new("Content-Length", (end - start).to_string()));
+            response.header(Header::new("Content-Type", String::from(mime.as_ref())));
 
             return response
                 .header(Header::new("Accept-Ranges", "bytes"))
