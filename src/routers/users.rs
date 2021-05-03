@@ -17,47 +17,49 @@ pub struct NewUser {
 }
 
 #[post("/", data = "<new_user>")]
-pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
-    let email_existed = users_service::email_existed(&new_user.email, None)
-        .expect("DB error on users_service::email_existed()");
+pub fn post_user<'r>(new_user: Result<Json<NewUser>, JsonError>) -> EZRespond<'r> {
+    json_catcher::with_json_catcher(new_user, |new_user| {
+        let email_existed = users_service::email_existed(&new_user.email, None)
+            .expect("DB error on users_service::email_existed()");
 
-    if email_existed {
-        return EZRespond::by_status(Status::Conflict);
-    }
+        if email_existed {
+            return EZRespond::by_status(Status::Conflict);
+        }
 
-    let conn = dal::establish_connection();
-    let transaction = conn.transaction::<_, Error, _>(|| {
-        users_service::create(
-            UserData {
-                id: &nanoid!(),
-                email: &new_user.email,
-                name: &new_user.name,
-            },
-            Some(&conn),
-        )?;
+        let conn = dal::establish_connection();
+        let transaction = conn.transaction::<_, Error, _>(|| {
+            users_service::create(
+                UserData {
+                    id: &nanoid!(),
+                    email: &new_user.email,
+                    name: &new_user.name,
+                },
+                Some(&conn),
+            )?;
 
-        let bcrypt_password_hash =
-            bcrypt::hash(new_user.password.as_bytes(), bcrypt::DEFAULT_COST)?;
+            let bcrypt_password_hash =
+                bcrypt::hash(new_user.password.as_bytes(), bcrypt::DEFAULT_COST)?;
 
-        auths_service::create(
-            AuthData {
-                id: &nanoid!(),
-                auth_type: auth_type::BASIC,
-                email: &new_user.email,
-                password_hash: &bcrypt_password_hash,
-            },
-            Some(&conn),
-        )?;
+            auths_service::create(
+                AuthData {
+                    id: &nanoid!(),
+                    auth_type: auth_type::BASIC,
+                    email: &new_user.email,
+                    password_hash: &bcrypt_password_hash,
+                },
+                Some(&conn),
+            )?;
 
-        Ok(())
-    });
+            Ok(())
+        });
 
-    if let Err(code) = transaction {
-        dbg!(code);
-        EZRespond::by_status(Status::InternalServerError)
-    } else {
-        EZRespond::by_status(Status::Created)
-    }
+        if let Err(code) = transaction {
+            dbg!(code);
+            EZRespond::by_status(Status::InternalServerError)
+        } else {
+            EZRespond::by_status(Status::Created)
+        }
+    })
 }
 
 #[get("/<user_id>")]
