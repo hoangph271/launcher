@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct User {
     pub id: String,
     pub email: String,
-    pub nickname: String,
+    pub name: String,
 }
 
 #[derive(Debug, Insertable, Deserialize, Serialize)]
@@ -13,7 +13,7 @@ pub struct User {
 pub struct UserData<'a> {
     pub id: &'a str,
     pub email: &'a str,
-    pub nickname: &'a str,
+    pub name: &'a str,
 }
 
 #[derive(Insertable, Deserialize, Serialize)]

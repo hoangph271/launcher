@@ -11,8 +11,11 @@ table! {
     users (id) {
         id -> Text,
         email -> Text,
-        nickname -> Text,
+        name -> Text,
     }
 }
 
-allow_tables_to_appear_in_same_query!(auths, users,);
+allow_tables_to_appear_in_same_query!(
+    auths,
+    users,
+);

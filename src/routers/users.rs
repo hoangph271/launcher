@@ -1,9 +1,9 @@
 use super::super::constants::auth_type;
-use diesel::prelude::*;
 use super::super::libs::responders::EZRespond;
 use anyhow::Error;
 use dal::models::{AuthData, UserData};
 use dal::{auths_service, users_service};
+use diesel::prelude::*;
 use nanoid::nanoid;
 use rocket::http::Status;
 use rocket_contrib::json::*;
@@ -12,7 +12,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct NewUser {
     pub email: String,
-    pub nickname: String,
+    pub name: String,
     pub password: String,
 }
 
@@ -31,7 +31,7 @@ pub fn post_user<'r>(new_user: Json<NewUser>) -> EZRespond<'r> {
             UserData {
                 id: &nanoid!(),
                 email: &new_user.email,
-                nickname: &new_user.nickname,
+                name: &new_user.name,
             },
             Some(&conn),
         )?;
@@ -83,7 +83,7 @@ pub fn get_users<'a>() -> EZRespond<'a> {
 #[derive(Deserialize, Debug)]
 pub struct UserPayload {
     pub email: String,
-    pub nickname: String,
+    pub name: String,
 }
 
 #[put("/<user_id>", data = "<user>")]
@@ -94,7 +94,7 @@ pub fn update_user<'a>(user_id: String, user: Json<UserPayload>) -> EZRespond<'a
         &user_id,
         users_service::UpdatePayload {
             email: user.email,
-            nickname: user.nickname,
+            name: user.name,
         },
         None,
     );

@@ -27,6 +27,12 @@ pub fn find_by_id(user_id: &str, conn: Option<&SqliteConnection>) -> Result<User
     execute_auto_connect(conn, |conn| users.find(user_id).first::<User>(conn))
 }
 
+pub fn find_by_email(email_to_find: &str, conn: Option<&SqliteConnection>) -> Result<User, Error> {
+    execute_auto_connect(conn, |conn| {
+        users.filter(email.eq(email_to_find)).first::<User>(conn)
+    })
+}
+
 pub fn find(conn: Option<&SqliteConnection>) -> Result<Vec<User>, Error> {
     execute_auto_connect(conn, |conn| users.load::<User>(conn))
 }
@@ -41,7 +47,7 @@ pub fn delete_by_id(user_id: &str, conn: Option<&SqliteConnection>) -> Result<us
 #[table_name = "users"]
 pub struct UpdatePayload {
     pub email: String,
-    pub nickname: String,
+    pub name: String,
 }
 
 pub fn update(
