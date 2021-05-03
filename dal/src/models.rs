@@ -6,6 +6,7 @@ pub struct User {
     pub id: String,
     pub email: String,
     pub name: String,
+    pub image: Option<String>,
 }
 
 #[derive(Debug, Insertable, Deserialize, Serialize)]

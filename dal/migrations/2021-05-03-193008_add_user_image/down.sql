@@ -1,0 +1,2 @@
+-- ! SQLite doesn't support drop column
+-- ! And dropping column isn't really neccessary

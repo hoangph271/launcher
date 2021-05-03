@@ -27,7 +27,9 @@ fn main() {
                 users::get_users,
                 users::post_user,
                 users::delete_user,
-                users::update_user
+                users::update_user,
+                users::update_user_image,
+                users::get_user_image,
             ],
         )
         .mount("/auths", routes![auths::login])

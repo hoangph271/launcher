@@ -12,6 +12,7 @@ table! {
         id -> Text,
         email -> Text,
         name -> Text,
+        image -> Nullable<Text>,
     }
 }
 

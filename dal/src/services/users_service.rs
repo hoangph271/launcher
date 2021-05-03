@@ -61,3 +61,15 @@ pub fn update(
             .execute(conn)
     })
 }
+
+pub fn update_image(
+    user_id: &str,
+    user_image: &str,
+    conn: Option<&SqliteConnection>,
+) -> Result<usize, Error> {
+    execute_auto_connect(conn, move |conn| {
+        diesel::update(users.find(&user_id))
+            .set(image.eq(user_image))
+            .execute(conn)
+    })
+}

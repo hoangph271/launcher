@@ -1,4 +1,5 @@
 use std::env::current_dir;
+use std::fs::create_dir_all;
 use std::path::PathBuf;
 
 pub fn cwd() -> PathBuf {
@@ -10,9 +11,9 @@ pub fn bins() -> PathBuf {
 }
 
 pub fn init_app() {
-    use std::fs::create_dir_all;
     dotenv::dotenv().expect("Error loading .env");
 
     // ? Create "bins" directory
     create_dir_all(bins()).expect("failed creating bins/");
+    create_dir_all(bins().join("users")).expect("failed creating bins/users");
 }

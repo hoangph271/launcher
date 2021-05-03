@@ -21,6 +21,10 @@ pub struct EZRespond<'r> {
 }
 
 impl<'a> EZRespond<'a> {
+    pub fn ok<'r>() -> EZRespond<'r> {
+        EZRespond::by_status(Status::Ok)
+    }
+
     pub fn by_status<'r>(status: Status) -> EZRespond<'r> {
         let body = match status {
             Status::Ok => Body::Text(String::from(response_messsage::OK)),
