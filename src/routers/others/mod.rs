@@ -23,3 +23,5 @@ mod server_status;
 pub fn server_status<'r>(basic_auth: server_status::BasicAuth) -> EZRespond<'r> {
     server_status::server_status(basic_auth)
 }
+
+pub mod cors;

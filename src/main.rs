@@ -29,7 +29,6 @@ fn main() {
                 users::delete_user,
                 users::update_user,
                 users::update_user_image,
-                users::get_user_image,
             ],
         )
         .mount("/auths", routes![auths::login])
@@ -44,5 +43,6 @@ fn main() {
             others::unauthorized,
             others::unprocessable_entity
         ])
+        .attach(others::cors::Cors)
         .launch();
 }

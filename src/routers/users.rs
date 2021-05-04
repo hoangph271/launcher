@@ -153,8 +153,9 @@ pub fn update_user_image<'a>(user_id: String, image: rocket::Data) -> EZRespond<
         })?;
 
         if let Some(image) = user.image {
-            let image_path = bins_path.join(&image);
-            if let Err(e) = remove_file(image_path) {
+            let image_path = bins_dir.join(&image);
+            if let Err(e) = remove_file(&image_path) {
+                println!("{:?}", &image_path);
                 dbg!(e);
             }
         }
@@ -209,10 +210,4 @@ pub fn delete_user<'a>(user_id: String) -> EZRespond<'a> {
         println!("Error delete_user(): {:?}", transaction);
         EZRespond::by_status(Status::InternalServerError)
     }
-}
-
-#[get("/<user_id>/image")]
-pub fn get_user_image<'a>(user_id: String) -> EZRespond<'a> {
-    // TODO: Read & stream this
-    EZRespond::text(user_id, Some(Status::Forbidden))
 }
