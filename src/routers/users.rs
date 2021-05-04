@@ -5,6 +5,7 @@ use dal::models::{AuthData, UserData};
 use dal::{auths_service, users_service};
 use diesel::prelude::*;
 use nanoid::nanoid;
+use rocket::data::Data;
 use rocket::http::Status;
 use rocket_contrib::json::*;
 use serde::Deserialize;
@@ -112,7 +113,7 @@ pub fn update_user<'a>(
 }
 
 #[put("/<user_id>/image", data = "<image>")]
-pub fn update_user_image<'a>(user_id: String, image: rocket::Data) -> EZRespond<'a> {
+pub fn update_user_image<'a>(user_id: String, image: Data) -> EZRespond<'a> {
     let execute = || -> Result<Status, Status> {
         let user = users_service::find_by_id(&user_id, None).map_err(|e| {
             dbg!(e);
@@ -153,7 +154,7 @@ pub fn update_user_image<'a>(user_id: String, image: rocket::Data) -> EZRespond<
         })?;
 
         if let Some(image) = user.image {
-            let image_path = bins_dir.join(&image);
+            let image_path = bins().join(&bins_dir).join(&image);
             if let Err(e) = remove_file(&image_path) {
                 println!("{:?}", &image_path);
                 dbg!(e);
