@@ -6,6 +6,7 @@ use serde::*;
 use std::env;
 use std::str;
 use sys_info;
+use sysinfo::{Processor, ProcessorExt, System, SystemExt};
 
 #[derive(Debug)]
 pub struct BasicAuth {
@@ -85,6 +86,33 @@ struct OsInfo {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Cpu {
+    name: String,
+    usage: f32,
+    brand: String,
+    vendor_id: String,
+    frequency: u64,
+}
+impl Cpu {
+    fn vec_from(processors: &[Processor]) -> Vec<Cpu> {
+        let mut cpus = Vec::new();
+
+        for processor in processors {
+            cpus.push(Cpu {
+                name: processor.get_name().to_string(),
+                brand: processor.get_brand().to_string(),
+                vendor_id: processor.get_vendor_id().to_string(),
+                usage: processor.get_cpu_usage(),
+                frequency: processor.get_frequency(),
+            });
+        }
+
+        cpus
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SystemStatus {
     username: String,
     #[serde(rename = "diskUsage")]
@@ -94,6 +122,7 @@ pub struct SystemStatus {
     hostname: String,
     #[serde(rename = "cpuCount")]
     cpu_num: u32,
+    cpus: Vec<Cpu>,
     os: OsInfo,
     batteries: Vec<JsonValue>,
 }
@@ -144,6 +173,9 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
     let os_release = sys_info::os_release().map_err(err_mapper)?;
     let os_type = sys_info::os_type().map_err(err_mapper)?;
 
+    let system = System::new();
+    let processors = system.get_processors();
+
     Ok(SystemStatus {
         username: basic_auth.username.clone(),
         disk_info: DiskInfo {
@@ -160,6 +192,7 @@ fn get_system_status(basic_auth: &BasicAuth) -> Result<SystemStatus, ()> {
         },
         hostname,
         cpu_num,
+        cpus: Cpu::vec_from(processors),
         os: OsInfo {
             release: os_release,
             os_type,
