@@ -1,4 +1,4 @@
-use super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use dal::{auths_service, users_service};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use rocket::http::Status;

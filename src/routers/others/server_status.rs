@@ -1,4 +1,4 @@
-use super::super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use battery::{Battery, Manager};
 use rocket::{http::Status, request::*, Request};
 use rocket_contrib::json::JsonValue;

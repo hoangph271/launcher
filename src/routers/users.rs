@@ -1,5 +1,5 @@
-use super::super::libs::{json_catcher, responders::EZRespond};
-use super::super::{app_context::bins, constants::auth_type};
+use crate::libs::{json_catcher, responders::EZRespond};
+use crate::{app_context::bins, constants::auth_type};
 use anyhow::Error;
 use dal::models::{AuthData, UserData};
 use dal::{auths_service, users_service};

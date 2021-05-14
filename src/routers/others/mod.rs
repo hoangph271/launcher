@@ -1,4 +1,4 @@
-use super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use rocket::Request;
 
 mod not_found;
