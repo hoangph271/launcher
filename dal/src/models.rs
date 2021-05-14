@@ -1,4 +1,4 @@
-use super::schema::*;
+use crate::schema::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Serialize)]

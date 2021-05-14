@@ -1,7 +1,7 @@
-use super::super::models::{User, UserData};
-use super::super::schema::users;
-use super::super::schema::users::dsl::*;
 use super::execute_auto_connect;
+use crate::models::{User, UserData};
+use crate::schema::users;
+use crate::schema::users::dsl::*;
 use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;

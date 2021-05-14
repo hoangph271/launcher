@@ -1,7 +1,7 @@
-use super::super::models::{Auth, AuthData};
-use super::super::schema::auths;
-use super::super::schema::auths::dsl::*;
 use super::execute_auto_connect;
+use crate::models::{Auth, AuthData};
+use crate::schema::auths;
+use crate::schema::auths::dsl::*;
 use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::sqlite::SqliteConnection;
