@@ -1,3 +1,4 @@
 /target
 /bins
 sqlite.db
+.DS_Store
