@@ -39,7 +39,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for BasicAuth {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, ()> {
-        match BasicAuth::from_request_wrapped(&request) {
+        match BasicAuth::from_request_wrapped(request) {
             Ok(outcome) => {
                 if let (Ok(username), Ok(password)) = (
                     env::var("STATUS_CHECK_USERNAME"),

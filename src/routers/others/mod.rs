@@ -4,7 +4,7 @@ use rocket::Request;
 mod not_found;
 #[catch(404)]
 pub fn not_found<'r>(req: &Request) -> EZRespond<'r> {
-    not_found::not_found(&req)
+    not_found::not_found(req)
 }
 
 mod unauthorized;

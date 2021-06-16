@@ -30,7 +30,7 @@ pub fn login<'r>(login_payload: Json<LoginPayload>) -> EZRespond<'r> {
             let token = encode(
                 &Header::default(),
                 &claims,
-                &EncodingKey::from_secret(&jwt_secret.as_bytes()),
+                &EncodingKey::from_secret(jwt_secret.as_bytes()),
             );
 
             if let (Ok(token), Ok(user)) = (token, user) {
