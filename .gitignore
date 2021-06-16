@@ -1,3 +1,5 @@
 /target
 /bins
 sqlite.db
+*_db
+*.db-journal
