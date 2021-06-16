@@ -1,4 +1,4 @@
-use super::super::constants::response_messsage;
+use crate::constants::response_messsage;
 use rocket::http::{ContentType, Header, Status};
 use rocket::request::Request;
 use rocket::response::{self, Responder};

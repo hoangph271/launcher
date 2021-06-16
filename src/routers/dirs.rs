@@ -1,4 +1,4 @@
-use super::super::app_context::bins;
+use crate::app_context::bins;
 use rocket::request::Request;
 use rocket::response::{self, Responder};
 use rocket_contrib::json::Json;

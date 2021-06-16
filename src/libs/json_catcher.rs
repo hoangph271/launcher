@@ -1,4 +1,4 @@
-use super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use rocket::http::Status;
 use rocket_contrib::json::*;
 

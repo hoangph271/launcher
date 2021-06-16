@@ -1,4 +1,4 @@
-use super::super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use rocket::{http::Status, Request};
 
 pub fn not_found<'r>(req: &Request) -> EZRespond<'r> {

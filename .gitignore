@@ -3,3 +3,4 @@
 sqlite.db
 *_db
 *.db-journal
+.DS_Store

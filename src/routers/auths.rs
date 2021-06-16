@@ -1,4 +1,4 @@
-use super::super::libs::responders::EZRespond;
+use crate::libs::responders::EZRespond;
 use dal::{auths_service, users_service};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use rocket::http::Status;
@@ -30,7 +30,7 @@ pub fn login<'r>(login_payload: Json<LoginPayload>) -> EZRespond<'r> {
             let token = encode(
                 &Header::default(),
                 &claims,
-                &EncodingKey::from_secret(&jwt_secret.as_bytes()),
+                &EncodingKey::from_secret(jwt_secret.as_bytes()),
             );
 
             if let (Ok(token), Ok(user)) = (token, user) {
