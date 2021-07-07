@@ -1,4 +1,6 @@
 # launcher
 ```
-With #Rust
+#Rust
+
+Made with #Rocket
 ```
